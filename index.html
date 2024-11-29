@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artist Digital Toolkit</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Poppins:wght@300;500&display=swap" rel="stylesheet">
+  <style>
+    /* General Styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(145deg, #e9eff9, #cfd9e8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+
+    header {
+      background: linear-gradient(135deg, #4a90e2, #357ABD);
+      color: #fff;
+      text-align: center;
+      padding: 1.5rem;
+      border-radius: 15px;
+      width: 100%;
+      max-width: 800px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 1rem;
+      opacity: 0.8;
+      color: #FFFFFF;
+    }
+
+    main {
+      margin-top: 20px;
+      width: 100%;
+      max-width: 800px;
+      background: #ffffff;
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    section {
+      display: none;
+    }
+
+    section.active {
+      display: block;
+      animation: fadeIn 0.5s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h2 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.5rem;
+      color: #4a90e2;
+      margin-bottom: 1rem;
+    }
+
+    p {
+      margin-bottom: 1.5rem;
+      color: #555;
+      font-size: 1rem;
+      line-height: 1.6;
+    }
+
+    button {
+      background: linear-gradient(135deg, #4a90e2, #357ABD);
+      color: #fff;
+      padding: 0.8rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.3s;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    input[type="file"], input[type="text"], input[type="color"], input[type="range"], input[type="number"], input[type="date"] {
+      display: block;
+      margin: 0.5rem 0 1.5rem;
+      padding: 0.8rem;
+      width: 100%;
+      max-width: 400px;
+      font-size: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      background: #f9f9f9;
+      transition: border-color 0.3s ease-in-out;
+    }
+
+    input:focus {
+      border-color: #4a90e2;
+      outline: none;
+    }
+
+    canvas {
+      margin: 1.5rem 0;
+      max-width: 100%;
+      border: 2px dashed #ddd;
+      border-radius: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5rem 0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    table th, table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+      word-break: break-word; 
+      white-space: normal; 
+      overflow: hidden;
+    }
+
+    table th {
+      background: #f5f9ff;
+      color: #4a90e2;
+      font-weight: 600;
+      overflow: hidden;
+    }
+
+    pre {
+      background: #f9f9f9;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+
+    /* Navigation */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+    }
+
+    .nav button {
+      background: none;
+      color: #4a90e2;
+      font-weight: 500;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      border: 1px solid transparent;
+      transition: all 0.3s ease-in-out;
+    }
+
+    .nav button:hover {
+      background: #4a90e2;
+      color: #fff;
+      border-color: #4a90e2;
+    }
+
+    .nav button.active {
+      background: #4a90e2;
+      color: white;
+    }
+
+   /* Responsive Styles */
+   @media (max-width: 768px) {
+      header, main {
+        padding: 1.5rem;
+      }
+
+      header h1 {
+        font-size: 1.5rem;
+      }
+
+      header p {
+        font-size: 0.9rem;
+      }
+
+      .nav {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      input[type="file"], 
+      input[type="text"], 
+      input[type="color"], 
+      input[type="range"], 
+      input[type="number"], 
+      input[type="date"] {
+        width: 90%;
+      }
+
+      button {
+        width: 90%;
+        padding: 0.7rem 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header h1 {
+        font-size: 1.3rem;
+      }
+
+      header p {
+        font-size: 0.8rem;
+      }
+
+      button {
+        font-size: 0.9rem;
+        padding: 0.6rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Artist Digital Toolkit</h1>
+    <p>Your all-in-one solution for protecting, sharing, and managing your digital artwork.</p>
+  </header>
+
+  <main>
+    <div class="nav">
+      <button class="active" onclick="Toolkit.showSection('home')">Home</button>
+      <button onclick="Toolkit.showSection('watermark')">Watermark</button>
+      <button onclick="Toolkit.showSection('metadata')">Metadata</button>
+      <button onclick="Toolkit.showSection('agreement')">Agreement</button>
+    </div>
+
+    <!-- Welcome Section -->
+    <section id="home" class="active">
+      <h2>Welcome to Artist Digital Toolkit</h2>
+      <p>The Artist Digital Toolkit is designed for artists to take control of their digital creations. Here's what you can do:</p>
+      <ul>
+        <li><strong>Watermark Generator:</strong> Add and customize watermarks to protect your artwork from unauthorized use.</li>
+        <li><strong>Metadata Manager:</strong> View and remove sensitive metadata from images to enhance privacy.</li>
+        <li><strong>Sharing Agreement Creator:</strong> Generate professional agreements to securely share your work.</li>
+      </ul>
+      <br></br>
+      <p>Select a tool from the navigation above or get started with one of the features below.</p>
+      <button onclick="Toolkit.showSection('watermark')">Start Watermarking</button>
+      <button onclick="Toolkit.showSection('metadata')">Manage Metadata</button>
+      <button onclick="Toolkit.showSection('agreement')">Create Agreement</button>
+    </section>
+
+    <!-- Watermark Generator Section -->
+    <section id="watermark">
+      <h2>Watermark Your Artwork</h2>
+      <p>Add and customize a watermark, move it, adjust its opacity, and download your watermarked image with perfect quality.</p>
+      <input type="file" id="imageInput" accept="image/*" onchange="Toolkit.loadImage()">
+      <canvas id="watermarkCanvas"></canvas>
+      <input type="text" id="watermarkText" placeholder="Enter watermark text" oninput="Toolkit.updateWatermark()">
+      <label for="watermarkColor">Text Color:</label>
+      <input type="color" id="watermarkColor" value="#000000" onchange="Toolkit.updateWatermark()">
+      <label for="watermarkSize">Font Size:</label>
+      <input type="number" id="watermarkSize" min="10" max="100" value="30" onchange="Toolkit.updateWatermark()">
+      <label for="watermarkOpacity">Opacity:</label>
+      <input type="range" id="watermarkOpacity" min="0" max="1" step="0.1" value="1" onchange="Toolkit.updateWatermark()">
+      <p>Drag the watermark to reposition it.</p>
+      <button onclick="Toolkit.downloadWatermarkedImage()">Download Watermarked Image</button>
+    </section>
+
+    <!-- Metadata Manager Section -->
+    <section id="metadata">
+      <h2>Metadata Manager</h2>
+      <p>View and remove metadata from your images to protect your privacy.</p>
+      <input type="file" id="metadataInput" accept="image/*" onchange="Toolkit.previewMetadata()">
+      <table id="metadataTable"></table>
+      <canvas id="metadataCanvas" style="display:none;"></canvas>
+      <button id="clearMetadataButton" onclick="Toolkit.stripMetadata()">Clear Metadata</button>
+      <button id="downloadCleanedImageButton" style="display:none;" onclick="Toolkit.downloadCleanedImage()">Download Cleaned Image</button>
+    </section>
+
+    <!-- Sharing Agreement Section -->
+    <section id="agreement">
+      <h2>Create a Sharing Agreement</h2>
+      <p>Generate a professional agreement to securely share your artwork.</p>
+      <input type="text" id="recipientName" placeholder="Recipient Name">
+      <input type="text" id="workTitle" placeholder="Work Title">
+      <input type="text" id="sharingPurpose" placeholder="Purpose of Sharing">
+      <input type="date" id="expirationDate" placeholder="Expiration Date">
+      <button onclick="Toolkit.generateAgreement()">Generate Agreement</button>
+      <pre id="agreementPreview"></pre>
+      <button onclick="Toolkit.downloadAgreement()">Download Agreement</button>
+    </section>
+  </main>
+
+  <script>
+    const Toolkit = (function () {
+      let cleanedImageUrl = null;
+      let watermarkPosition = { x: 500, y: 500 };
+      let img = null;
+
+      // Input Validation Helpers
+      function validateFileInput(file) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+        const maxSizeMB = 5; // Set a max file size of 5MB
+
+        if (!file) {
+          alert('No file selected. Please upload an image.');
+          return false;
+        }
+
+        if (!allowedTypes.includes(file.type)) {
+          alert('Invalid file type. Please upload a JPEG, PNG, or GIF image.');
+          return false;
+        }
+
+        if (file.size > maxSizeMB * 1024 * 1024) {
+          alert(`File size exceeds ${maxSizeMB} MB. Please upload a smaller image.`);
+          return false;
+        }
+
+        return true;
+      }
+
+      function sanitizeInput(input) {
+        const div = document.createElement('div');
+        div.textContent = input; 
+        return div.innerHTML;
+      }
+
+      function sanitizeInputs(inputs) {
+        return inputs.map((input) => sanitizeInput(input));
+      }
+
+      // Navigation
+      function showSection(sectionId) {
+        document.querySelectorAll('section').forEach(section => section.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+      }
+
+      // Watermark Generator
+      function loadImage() {
+        const imageInput = document.getElementById('imageInput').files[0];
+        if (!validateFileInput(imageInput)) {
+          return;
+        }
+
+        const canvas = document.getElementById('watermarkCanvas');
+        const ctx = canvas.getContext('2d');
+
+        if (imageInput) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            img = new Image();
+            img.onload = function () {
+              canvas.width = img.width;
+              canvas.height = img.height;
+              ctx.drawImage(img, 0, 0);
+              canvas.addEventListener('mousedown', startDrag);
+              canvas.addEventListener('mousemove', dragWatermark);
+              canvas.addEventListener('mouseup', endDrag);
+              canvas.addEventListener('touchstart', startDrag);
+              canvas.addEventListener('touchmove', dragWatermark);
+              canvas.addEventListener('touchend', endDrag);
+              updateWatermark();
+            };
+            img.src = e.target.result;
+          };
+          reader.readAsDataURL(imageInput);
+        }
+      }
+
+      function updateWatermark() {
+        const canvas = document.getElementById('watermarkCanvas');
+        const ctx = canvas.getContext('2d');
+        const watermarkText = sanitizeInput(document.getElementById('watermarkText').value);
+        const textColor = document.getElementById('watermarkColor').value;
+        const fontSize = document.getElementById('watermarkSize').value;
+        const opacity = document.getElementById('watermarkOpacity').value;
+
+        if (img) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+          ctx.globalAlpha = opacity;
+          ctx.font = `${fontSize}px Arial`;
+          ctx.fillStyle = textColor;
+          ctx.textAlign = 'center';
+          ctx.fillText(watermarkText, watermarkPosition.x, watermarkPosition.y);
+          ctx.globalAlpha = 1.0;
+        }
+      }
+
+      let isDragging = false;
+
+      function startDrag(e) {
+        isDragging = true;
+        // Normalize touch and mouse positions
+        const { x, y } = getEventPosition(e);
+        watermarkPosition.x = x;
+        watermarkPosition.y = y;
+      }
+
+      function dragWatermark(e) {
+        if (isDragging) {
+          const { x, y } = getEventPosition(e);
+          watermarkPosition.x = x;
+          watermarkPosition.y = y;
+          updateWatermark();
+        }
+      }
+
+      function endDrag() {
+        isDragging = false;
+      }
+
+      function getEventPosition(e) {
+        const canvas = document.getElementById('watermarkCanvas');
+        const rect = canvas.getBoundingClientRect();
+        let x, y;
+        if (e.touches) { // Touch event
+          x = e.touches[0].clientX - rect.left;
+          y = e.touches[0].clientY - rect.top;
+        } else { // Mouse event
+          x = e.clientX - rect.left;
+          y = e.clientY - rect.top;
+        }
+        return { x, y };
+      }
+
+      function downloadWatermarkedImage() {
+        const canvas = document.getElementById('watermarkCanvas');
+        const link = document.createElement('a');
+        link.download = 'watermarked-image.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }
+
+      // Metadata Manager
+      function previewMetadata() {
+        const file = document.getElementById('metadataInput').files[0];
+        if (!validateFileInput(file)) {
+          return;
+        }
+
+        const table = document.getElementById('metadataTable');
+        const canvas = document.getElementById('metadataCanvas');
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = new Image();
+          img.src = e.target.result;
+
+          img.onload = function () {
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+
+            // Extract metadata
+            EXIF.getData(img, function () {
+              const metadata = EXIF.getAllTags(this);
+              let metadataHtml = `<tr><th>Key</th><th>Value</th></tr>`;
+              for (const key in metadata) {
+                if (key !== 'MakerNote') { // Exclude MakerNote
+                  metadataHtml += `<tr><td>${key}</td><td>${metadata[key]}</td></tr>`;
+                }
+              }
+              table.innerHTML = metadataHtml;
+            });
+          };
+        };
+        reader.readAsDataURL(file);
+      }
+
+      function stripMetadata() {
+        const canvas = document.getElementById('metadataCanvas');
+        const linkButton = document.getElementById('downloadCleanedImageButton');
+
+        if (!canvas) {
+          alert('No image loaded.');
+          return;
+        }
+
+        cleanedImageUrl = canvas.toDataURL('image/png');
+        linkButton.style.display = 'inline-block';
+        alert('Metadata cleared. You can now download the cleaned image.');
+      }
+
+      function downloadCleanedImage() {
+        if (!cleanedImageUrl) {
+          alert('No cleaned image to download.');
+          return;
+        }
+
+        const link = document.createElement('a');
+        link.download = 'cleaned-image.png';
+        link.href = cleanedImageUrl;
+        link.click();
+      }
+
+      // Sharing Agreement Generator
+      function generateAgreement() {
+        const [recipient, workTitle, purpose, expiration] = sanitizeInputs([
+          document.getElementById('recipientName').value,
+          document.getElementById('workTitle').value,
+          document.getElementById('sharingPurpose').value,
+          document.getElementById('expirationDate').value
+        ]);
+
+        if (!expiration) {
+          alert('Please select an expiration date.');
+          return;
+        }
+
+        const agreementText = `
+Sharing Agreement
+=================
+Recipient: ${recipient}
+Work Title: "${workTitle}"
+Purpose: ${purpose}
+Expiration Date: ${expiration}
+
+Agreement:
+This sharing agreement allows ${recipient} to use the work titled "${workTitle}" 
+for the stated purpose: "${purpose}" until the expiration date of ${expiration}.
+`.trim();
+
+        document.getElementById('agreementPreview').textContent = agreementText;
+      }
+
+      function downloadAgreement() {
+        const agreementText = document.getElementById('agreementPreview').textContent;
+        const blob = new Blob([agreementText], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.download = 'sharing-agreement.txt';
+        link.href = URL.createObjectURL(blob);
+        link.click();
+      }
+
+      return {
+        showSection,
+        loadImage,
+        updateWatermark,
+        downloadWatermarkedImage,
+        previewMetadata,
+        stripMetadata,
+        downloadCleanedImage,
+        generateAgreement,
+        downloadAgreement,
+      };
+    })();
+  </script>
+</body>
+</html>
